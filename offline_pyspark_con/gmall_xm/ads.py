@@ -79,6 +79,7 @@ def etl_ads_page_path(spark, dt):
 
 
 
+
 def etl_ads_user_change(spark, dt):
     sql = """
     select
