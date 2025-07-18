@@ -78,6 +78,7 @@ def etl_ads_page_path(spark, dt):
     insert_to_hive(df, "ads_page_path", dt)
 
 
+
 def etl_ads_user_change(spark, dt):
     sql = """
     select

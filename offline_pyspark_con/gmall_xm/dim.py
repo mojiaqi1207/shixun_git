@@ -71,6 +71,7 @@ LEFT JOIN (
 WHERE sku.ds = {date};
 """)
 
+
 spark.sql(f"""
 insert overwrite table dim_coupon_full partition(dt='{date}')
 SELECT
