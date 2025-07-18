@@ -265,7 +265,7 @@ select
     sku_id,
     substr(create_time,1,7),
     create_time
-from gmall.ods_favor_info
+from gmall.ods_favor_ info
 where is_cancel='0';
 """).show()
 

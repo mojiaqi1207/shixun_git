@@ -52,7 +52,7 @@ def etl_ads_traffic_stats_by_channel(spark, dt):
 def etl_ads_page_path(spark, dt):
     sql = """ 
     select
-        '{0}' dt,
+        '{0}' dt, 
         source,
         nvl(target,'null') target,
         count(*) path_count
