@@ -43,7 +43,7 @@ LEFT JOIN ods_base_category2 c2 ON c3.category2_id = c2.id AND c2.ds = {date}
 LEFT JOIN ods_base_category1 c1 ON c2.category1_id = c1.id AND c1.ds = {date}
 LEFT JOIN ods_base_trademark tm ON sku.tm_id = tm.id AND tm.ds = {date}
 LEFT JOIN (
-  SELECT
+  SELECT 
     sku_id,
     collect_set(named_struct(
       'attr_id', cast(attr_id as STRING),
@@ -55,7 +55,7 @@ LEFT JOIN (
   WHERE ds = {date}
   GROUP BY sku_id
 ) attr ON sku.id = attr.sku_id
-LEFT JOIN (
+LEFT JOIN ( 
   SELECT
     sku_id,
     collect_set(named_struct(

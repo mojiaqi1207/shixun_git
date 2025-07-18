@@ -50,7 +50,7 @@ def etl_ads_traffic_stats_by_channel(spark, dt):
 
 
 def etl_ads_page_path(spark, dt):
-    sql = """
+    sql = """ 
     select
         '{0}' dt,
         source,
@@ -58,6 +58,7 @@ def etl_ads_page_path(spark, dt):
         count(*) path_count
     from
     (
+    
         select
             concat('step-', rn, ':', page_id) source,
             concat('step-', rn + 1, ':', next_page_id) target
