@@ -12,231 +12,245 @@ sc = spark.sparkContext
 sc.setLogLevel("info")
 date = "20250718"
 
-spark.sql("use pygmall;")
-#INSERT OVERWRITE TABLE dim_sku_full PARTITION (dt = {date})
+spark.sql("use gmall_dim;")
+
+
+# dim_sku_full
 spark.sql(f"""
-INSERT OVERWRITE TABLE dim_sku_full PARTITION (dt = {date})
-SELECT
-  sku.id,
-  sku.price,
-  sku.sku_name,
-  sku.sku_desc,
-  sku.weight,
-  CAST(sku.is_sale AS BOOLEAN) AS is_sale,
-  sku.spu_id,
-  spu.spu_name,
-  sku.category3_id,
-  c3.name,
-  c2.id,
-  c2.name,
-  c1.id,
-  c1.name,
-  sku.tm_id,
-  tm.tm_name,
-  attr.attrs,
-  sale_attr.sale_attrs,
-  sku.create_time
-FROM ods_sku_info sku
-LEFT JOIN ods_spu_info spu ON sku.spu_id = spu.id AND spu.ds = {date}
-LEFT JOIN ods_base_category3 c3 ON sku.category3_id = c3.id AND c3.ds = {date}
-LEFT JOIN ods_base_category2 c2 ON c3.category2_id = c2.id AND c2.ds = {date}
-LEFT JOIN ods_base_category1 c1 ON c2.category1_id = c1.id AND c1.ds = {date}
-LEFT JOIN ods_base_trademark tm ON sku.tm_id = tm.id AND tm.ds = {date}
-LEFT JOIN (
-  SELECT  
-    sku_id,
-    collect_set(named_struct(
-      'attr_id', cast(attr_id as STRING),
-      'value_id', cast(value_id as STRING),
-      'attr_name', attr_name,
-      'value_name', value_name
-    )) AS attrs
-  FROM ods_sku_attr_value
-  WHERE ds = {date}
-  GROUP BY sku_id
-) attr ON sku.id = attr.sku_id
-LEFT JOIN ( 
-  SELECT
-    sku_id,
-    collect_set(named_struct(
-      'sale_attr_id', cast(sale_attr_id as STRING),
-      'sale_attr_value_id', cast(sale_attr_value_id as STRING),
-      'sale_attr_name', sale_attr_name,
-      'sale_attr_value_name', sale_attr_value_name
-    )) AS sale_attrs
-  FROM ods_sku_sale_attr_value
-  WHERE ds = {date}
-  GROUP BY sku_id
-) sale_attr ON sku.id = sale_attr.sku_id
-WHERE sku.ds = {date};
-""")
+    with sku as (
+    select
+        *
+    from gmall.ods_sku_info
+    where dt={date}
+),
+     spu as(
+         select
+             *
+         from gmall.ods_spu_info
+         where dt={date}
+     ),
+     c3 as(
+         select
+             *
+         from gmall.ods_base_category3
+         where dt={date}
+     ),
+     c2 as(
+         select
+             *
+         from gmall.ods_base_category2
+         where dt={date}
+     ),
+     c1 as (
+         select
+             *
+         from gmall.ods_base_category1
+         where dt={date}
+     ),
+     tm as(
+         select
+             *
+         from gmall.ods_base_trademark
+         where dt={date}
+     ),
+     attr as (
+         select
+             *
+         from gmall.ods_sku_attr_value
+         where dt={date}
+     ),
+     sale_attr as (
+         select
+             *
+         from gmall.ods_sku_sale_attr_value
+         where dt={date}
+     )
+insert into dim_sku_full partition (dt={date} )
+select
+    sku.id,
+    sku.price,
+    sku.sku_name,
+    sku.sku_desc,
+    sku.weight,
+    cast(sku.is_sale as boolean),
+    spu.id,
+    spu.spu_name,
+    c3.id,
+    c3.name,
+    c2.id,
+    c2.name,
+    c1.id,
+    c1.name,
+    tm.id,
+    tm.tm_name,
+    attr.id,
+    attr.value_id,
+    attr.attr_name,
+    attr.value_name,
+    sale_attr.id,
+    sale_attr.sale_attr_value_id,
+    sale_attr.sale_attr_name,
+    sale_attr.sale_attr_value_name,
+    sku.create_time
+from sku
+         left join spu on sku.spu_id=spu.id
+         left join c3 on spu.category3_id=c3.id
+         left join c2 on c3.category2_id=c2.id
+         left join c1 on c2.category1_id=c1.id
+         left join tm on tm.id=sku.tm_id
+         left join attr on attr.sku_id=sku.id
+         left join sale_attr on sale_attr.sku_id=sku.id;
+""").show()
 
-
-
-spark.sql(f"""
-insert overwrite table dim_coupon_full partition(dt='{date}')
-SELECT
-    ci.id,
-    ci.coupon_name,
-    CAST(ci.coupon_type AS STRING) AS coupon_type_code,
-    coupon_dic.dic_name AS coupon_type_name,
-    ci.condition_amount,
-    ci.condition_num,
-    ci.activity_id,
-    ci.benefit_amount,
-    ci.benefit_discount,
-    CASE CAST(ci.coupon_type AS STRING)
-        WHEN '3201' THEN CONCAT('满', ci.condition_amount, '元减', ci.benefit_amount, '元')
-        WHEN '3202' THEN CONCAT('满', ci.condition_num, '件打', ci.benefit_discount, ' 折')
-        WHEN '3203' THEN CONCAT('减', ci.benefit_amount, '元')
-    END AS benefit_rule,
-    ci.create_time,
-    CAST(ci.range_type AS STRING) AS range_type_code,
-    range_dic.dic_name AS range_type_name,
-    ci.limit_num,
-    ci.taken_count,
-    ci.start_time,
-    ci.end_time,
-    ci.operate_time,
-    ci.expire_time
-FROM
-(
-    SELECT
-        id,
-        coupon_name,
-        coupon_type,
-        condition_amount,
-        condition_num,
-        activity_id,
-        benefit_amount,
-        benefit_discount,
-        create_time,
-        range_type,
-        limit_num,
-        taken_count,
-        start_time,
-        end_time,
-        operate_time,
-        expire_time
-    FROM ods_coupon_info
-    WHERE ds='{date}'
-) ci
-LEFT JOIN (
-    SELECT
-        id,
-        dic_name
-    FROM ods_base_dic
-    WHERE ds='{date}'
-      AND parent_code='32'
-) coupon_dic ON ci.coupon_type = coupon_dic.id
-LEFT JOIN (
-    SELECT
-        id,
-        dic_name
-    FROM ods_base_dic
-    WHERE ds='{date}'
-      AND parent_code='33'
-) range_dic ON ci.range_type = range_dic.id;
-""")
+#  dim_coupon_full
 
 spark.sql(f"""
-insert overwrite table dim_activity_full partition(dt='{date}')
+    insert overwrite table dim_coupon_full partition(dt={date})
+select
+    id,
+    coupon_name,
+    coupon_type,
+    coupon_dic.dic_name,
+    condition_amount,
+    condition_num,
+    activity_id,
+    benefit_amount,
+    benefit_discount,
+    case coupon_type
+        when '3201' then concat('满',condition_amount,'元减',benefit_amount,'元')
+        when '3202' then concat('满',condition_num,'件打', benefit_discount,' 折')
+        when '3203' then concat('减',benefit_amount,'元')
+        end benefit_rule,
+    create_time,
+    range_type,
+    range_dic.dic_name,
+    limit_num,
+    taken_count,
+    start_time,
+    end_time,
+    operate_time,
+    expire_time
+from
+    (
+        select
+            id,
+            coupon_name,
+            coupon_type,
+            condition_amount,
+            condition_num,
+            activity_id,
+            benefit_amount,
+            benefit_discount,
+            create_time,
+            range_type,
+            limit_num,
+            taken_count,
+            start_time,
+            end_time,
+            operate_time,
+            expire_time
+        from gmall.ods_coupon_info
+        where dt={date}
+    )ci
+        left join
+    (
+        select
+            dic_code,
+            dic_name
+        from gmall.ods_base_dic
+        where dt={date}
+          and parent_code='32'
+    )coupon_dic
+    on ci.coupon_type=coupon_dic.dic_code
+        left join
+    (
+        select
+            dic_code,
+            dic_name
+        from gmall.ods_base_dic
+        where dt={date}
+          and parent_code='33'
+    )range_dic
+    on ci.range_type=range_dic.dic_code;
+""").show()
+
+# dim_activity_full
+
+spark.sql(f"""
+        insert into dim_activity_full partition (dt={date})
 select
     rule.id,
     info.id,
-    activity_name,
-    rule.activity_type,
+    info.activity_name,
+    dic.dic_code,
     dic.dic_name,
-    activity_desc,
-    start_time,
-    end_time,
-    create_time,
-    condition_amount,
-    condition_num,
-    benefit_amount,
-    benefit_discount,
+    info.activity_desc,
+    info.start_time,
+    info.end_time,
+    rule.create_time,
+    rule.condition_amount,
+    rule.condition_num,
+    rule.benefit_amount,
+    rule.benefit_discount,
     case rule.activity_type
         when '3101' then concat('满',condition_amount,'元减',benefit_amount,'元')
         when '3102' then concat('满',condition_num,'件打', benefit_discount,' 折')
         when '3103' then concat('打', benefit_discount,'折')
-    end benefit_rule,
-    benefit_level
-from
-(
+        end benefit_rule,
+    rule.benefit_level
+from (
+         select
+             *
+         from gmall.ods_activity_rule
+         where dt={date}
+     ) rule
+         left join(
     select
-        id,
-        activity_id,
-        activity_type,
-        condition_amount,
-        condition_num,
-        benefit_amount,
-        benefit_discount,
-        benefit_level
-    from ods_activity_rule
-    where ds='{date}'
-)rule
-left join
-(
-    select
-        id,
-        activity_name,
-        activity_type,
-        activity_desc,
-        start_time,
-        end_time,
-        create_time
-    from ods_activity_info
-    where ds='{date}'
+        *
+    from gmall.ods_activity_info
+    where dt={date}
 )info
-on rule.activity_id=info.id
-left join
-(
+                  on rule.activity_id=info.id
+         left join(
     select
-        id,
-        dic_name
-    from ods_base_dic
-    where ds='20250705'
-    and parent_code='31'
-)dic
-on rule.activity_type=dic.id;
-""")
+        *
+    from gmall.ods_base_dic
+    where dt={date}
+      and parent_code='31'
+)dic on dic.dic_code=rule.activity_type;
+""").show()
 
+#  dim_province_full
 
 spark.sql(f"""
-insert overwrite table dim_province_full partition(dt='{date}')
+    insert into dim_province_full partition (dt={date})
 select
-    province.id,
-    province.name,
-    province.area_code,
-    province.iso_code,
-    province.iso_3166_2,
-    region_id,
-    region_name
-from
-(
+    pro.id,
+    pro.name,
+    pro.area_code,
+    pro.iso_code,
+    pro.iso_3166_2,
+    reg.id,
+    reg.region_name
+from (
+         select
+             *
+         from gmall.ods_base_province
+         where dt={date}
+     ) pro
+         left join (
     select
-        id,
-        name,
-        region_id,
-        area_code,
-        iso_code,
-        iso_3166_2
-    from ods_base_province
-    where ds='{date}'
-)province
-left join
-(
-    select
-        id,
-        region_name
-    from ods_base_region
-    where ds='{date}'
-)region
-on province.region_id=region.id;
-""")
+        *
+    from gmall.ods_base_region
+    where dt={date}
+)reg
+                   on pro.region_id=reg.id;
+""").show()
+
+# dim_promotion_pos_full
 
 spark.sql(f"""
-insert overwrite table dim_promotion_pos_full partition(dt={date})
+insert into dim_promotion_pos_full partition (dt="20250718")
 select
     id,
     pos_location,
@@ -244,52 +258,29 @@ select
     promotion_type,
     create_time,
     operate_time
-from ods_promotion_pos
-where ds={date};
-""")
+from gmall.ods_promotion_pos
+where dt={date};
+""").show()
+
+
+# dim_promotion_refer_full
 
 spark.sql(f"""
-insert overwrite table dim_promotion_refer_full partition(dt={date})
+    insert into dim_promotion_refer_full partition (dt='20250718')
 select
     id,
-    refer_name,
-    create_time,
+    refer_name,create_time,
     operate_time
-from ods_promotion_refer
-where ds={date};
-""")
+from gmall.ods_promotion_refer
+where dt={date};
+""").show()
+
+# dim_user_zip
 
 
 spark.sql(f"""
-
-insert overwrite table dim_user_zip partition (dt = '{date}')
-select id,
-       concat(substr(name, 1, 1), '*')       as         name,
-       if(phone_num regexp '^(13[0-9]|14[01456879]|15[0-35-9]|16[2567]|17[0-8]|18[0-9]|19[0-35-9])\\d{8}$',
-          concat(substr(phone_num, 1, 3), '*'), null) as phone_num,
-       if(email regexp '^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\\.[a-zA-Z0-9_-]+)+$',
-          concat('*@', split(email, '@')[1]), null) as  email,
-       user_level,
-       birthday,
-       gender,
-       create_time,
-       operate_time,
-       '{date}'                                        start_date,
-       '9999-12-31'                                        end_date
-from ods_user_info
-where ds = '{date}';
-
-""")
-
-
-spark.sql("SET hive.exec.dynamic.partition = true;")
-spark.sql("SET hive.exec.dynamic.partition.mode = nonstrict;")
-
-
-
-spark.sql(f"""
-INSERT OVERWRITE TABLE dim_user_zip PARTITION (dt)
-SELECT
+    insert into dim_user_zip partition (dt={date})
+select
     id,
     name,
     phone_num,
@@ -299,74 +290,7 @@ SELECT
     gender,
     create_time,
     operate_time,
-    start_date,
-    end_date,
-    CASE
-        WHEN rn = 1 THEN '9999-12-31'
-        ELSE '{date}'
-    END AS dt
-FROM (
-    SELECT
-        id,
-        -- 脱敏处理
-        CASE WHEN name IS NOT NULL THEN CONCAT(SUBSTRING(name, 1, 1), '*') ELSE NULL END AS name,
-        CASE
-            WHEN phone_num RLIKE '^1[3-9][0-9]{9}$' THEN CONCAT(SUBSTRING(phone_num, 1, 3), '****', SUBSTRING(phone_num, 8))
-            ELSE NULL
-        END AS phone_num,
-        CASE
-            WHEN email RLIKE '^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$' THEN CONCAT('***@', SPLIT(email, '@')[1])
-            ELSE NULL
-        END AS email,
-        user_level,
-        birthday,
-        gender,
-        create_time,
-        operate_time,
-        '{date}' AS start_date,
-        CASE
-            WHEN rn = 1 THEN '9999-12-31'
-            ELSE '{date}'
-        END AS end_date,
-        rn
-    FROM (
-        SELECT *,
-               ROW_NUMBER() OVER (PARTITION BY id ORDER BY start_date DESC) AS rn
-        FROM (
-            -- 合并变更数据 + 历史快照
-            SELECT
-          CAST(id AS STRING) AS id,
-  CAST(name AS STRING) AS name,
-  CAST(phone_num AS STRING) AS phone_num,
-  CAST(email AS STRING) AS email,
-  CAST(user_level AS STRING) AS user_level,
-  CAST(birthday AS STRING) AS birthday,
-  CAST(gender AS STRING) AS gender,
-  CAST(create_time AS STRING) AS create_time,
-  CAST(operate_time AS STRING) AS operate_time,
-  '20250705' AS start_date,
-  '9999-12-31' AS end_date
-            FROM ods_user_info
-            WHERE ds = '20250705'
-
-            UNION ALL
-
-            SELECT
-                id,
-                name,
-                phone_num,
-                email,
-                user_level,
-                birthday,
-                gender,
-                create_time,
-                operate_time,
-                start_date,
-                end_date
-            FROM dim_user_zip
-            WHERE dt = '9999-12-31'
-        ) merged_data
-    ) deduped_data
-) final_data;
-""")
-spark.stop()
+    '20250718' start_date,
+    '99991231' end_date
+from gmall.ods_user_info;
+""").show()
