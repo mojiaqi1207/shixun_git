@@ -1569,6 +1569,7 @@
 --     tblproperties('orc.compress' = 'snappy');
 --
 --
+
 --
 -- set hive.exec.dynamic.partition.mode=nonstrict;
 -- insert overwrite table dwd_bound_outbound_inc
