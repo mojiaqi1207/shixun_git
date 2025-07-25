@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SqlDialectMappings">
+    <file url="file://$PROJECT_DIR$/offline_pyspark_con/gmall_xm/ads.py" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/offline_pyspark_con/gmall_xm/dim.py" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/offline_pyspark_con/gmall_xm/dwd.py" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/offline_pyspark_con/gmall_xm/dws.py" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/tms01/src/main/java/ads.sql" dialect="HiveQL" />
+    <file url="file://$PROJECT_DIR$/tms01/src/main/java/dim.sql" dialect="HiveQL" />
+    <file url="file://$PROJECT_DIR$/tms01/src/main/java/dwd.sql" dialect="HiveQL" />
+    <file url="file://$PROJECT_DIR$/tms01/src/main/java/dws.sql" dialect="HiveQL" />
+    <file url="file://$PROJECT_DIR$/untitled1/src/main/java/gmall/ads.sql" dialect="HiveQL" />
+    <file url="file://$PROJECT_DIR$/untitled1/src/main/java/gmall/dim.sql" dialect="HiveQL" />
+    <file url="file://$PROJECT_DIR$/untitled1/src/main/java/gmall/dwd.sql" dialect="HiveQL" />
+    <file url="file://$PROJECT_DIR$/untitled1/src/main/java/gmall/dws.sql" dialect="HiveQL" />
+  </component>
+</project>
