@@ -230,6 +230,7 @@
 #         # 计算核心指标
 #         core_metrics = calculate_core_metrics(products_df, sales_df, reviews_df)
 #
+
 #         # 按分类分析
 #         category_analysis = analyze_by_category(products_df, sales_df, reviews_df)
 #
