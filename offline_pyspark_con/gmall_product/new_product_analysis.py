@@ -237,6 +237,8 @@
 #         # 分析最佳新品
 #         top_products = analyze_top_products(products_df, sales_df, reviews_df)
 #
+
+
 #         # 分析销售趋势
 #         sales_trend = analyze_sales_trend(products_df, sales_df)
 #
