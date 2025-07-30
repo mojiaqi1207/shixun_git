@@ -1,44 +1,28 @@
-# import os
-# import sys
-# import random
-# from datetime import datetime, timedelta
 # from pyspark.sql import SparkSession
 # from pyspark.sql.functions import col, count, sum, avg, max, min, datediff, current_date, when, rank
 # from pyspark.sql.window import Window
-#
-# def check_environment():
-#     """检查必要的运行环境"""
-#     try:
-#         # 检查Java是否安装
-#         import subprocess
-#         subprocess.check_output(['java', '-version'], stderr=subprocess.STDOUT)
-#     except (FileNotFoundError, subprocess.CalledProcessError):
-#         print("错误: 未找到Java环境。请安装Java并配置JAVA_HOME环境变量。")
-#         sys.exit(1)
-#
-#     # 检查是否设置了SPARK_HOME（可选，某些环境需要）
-#     if "SPARK_HOME" not in os.environ:
-#         print("警告: 未设置SPARK_HOME环境变量，可能导致运行问题")
-#
-# # 初始化SparkSession，增加环境配置
+# import random
+# from datetime import datetime, timedelta
+# import pandas as pd
+# from pyspark.sql.functions import col, count, countDistinct, sum, avg, max, min, datediff, current_date, when, rank
+# # 初始化SparkSession
 # def init_spark():
-#     # 手动指定Spark的Java目录（如果自动检测失败）
-#     # os.environ["JAVA_HOME"] = "C:/Program Files/Java/jdk1.8.0_301"  # 根据你的Java安装路径修改
-#     # os.environ["SPARK_HOME"] = "C:/spark-3.3.0-bin-hadoop3"  # 根据你的Spark安装路径修改
-#
 #     spark = SparkSession.builder \
 #         .appName("E-Commerce New Product Tracking") \
 #         .master("local[*]") \
-#         .config("spark.driver.memory", "4g") \
-#         .config("spark.executor.memory", "4g") \
 #         .config("spark.sql.warehouse.dir", "file:///tmp/spark-warehouse") \
+#         .config("spark.python.worker.connectionTimeout", "600s") \
+#         .config("spark.network.timeout", "800s") \
+#         .config("spark.sql.adaptive.enabled", "false") \
+#         .config("spark.python.worker.reuse", "false") \
 #         .getOrCreate()
 #
-#     # 打印Spark版本信息，确认初始化成功
-#     print(f"Spark 版本: {spark.version}")
 #     return spark
 #
 # # 生成模拟数据
+#
+#
+#
 # def generate_mock_data(spark, num_products=128, start_date=None, end_date=None):
 #     if not start_date:
 #         end_date = datetime.now()
@@ -80,8 +64,7 @@
 #
 #             # 新商品销量通常有增长趋势
 #             base_sales = random.randint(5, 50)
-#             sales_qty = base_sales + int(base_sales *
-#             (day / days_since_launch) * 2) if days_since_launch > 0 else base_sales
+#             sales_qty = base_sales + int(base_sales * (day / days_since_launch) * 2) if days_since_launch > 0 else base_sales
 #             sales_amount = round(sales_qty * product["price"] * random.uniform(0.9, 1.1), 2)  # 考虑一些价格波动
 #             clicks = sales_qty * random.randint(10, 30)  # 点击量通常是销量的10-30倍
 #             conversions = round(sales_qty / clicks * 100, 2) if clicks > 0 else 0
@@ -105,9 +88,7 @@
 #         # 随机生成10-50条评价
 #         num_reviews = random.randint(10, 50)
 #         for _ in range(num_reviews):
-#         review_date = (launch_date + timedelta(days=random.randint
-#         (1, days_since_launch))).strftime("%Y-%m-%d") if days_since_launch
-#         > 0 else launch_date.strftime("%Y-%m-%d")
+#             review_date = (launch_date + timedelta(days=random.randint(1, days_since_launch))).strftime("%Y-%m-%d") if days_since_launch > 0 else launch_date.strftime("%Y-%m-%d")
 #             rating = random.randint(3, 5) if random.random() > 0.1 else random.randint(1, 2)  # 10%概率低分
 #             reviews_data.append({
 #                 "product_id": product_id,
@@ -159,7 +140,7 @@
 #     # 按分类聚合销售数据
 #     category_sales = product_sales.groupBy("category") \
 #         .agg(
-#         count("distinct product_id").alias("product_count"),
+#         countDistinct("product_id").alias("product_count"),
 #         sum("sales_amount").alias("total_sales"),
 #         avg("conversions").alias("avg_conversion")
 #     )
@@ -216,47 +197,32 @@
 #
 # # 主函数
 # def main():
-#     # 检查运行环境
-#     check_environment()
-#
 #     # 初始化Spark
 #     spark = init_spark()
 #
-#     try:
-#         # 生成模拟数据
-#         print("生成模拟数据...")
-#         products_df, sales_df, reviews_df = generate_mock_data(spark)
+#     # 生成模拟数据
+#     print("生成模拟数据...")
+#     products_df, sales_df, reviews_df = generate_mock_data(spark)
 #
-#         # 计算核心指标
-#         core_metrics = calculate_core_metrics(products_df, sales_df, reviews_df)
+#     # 计算核心指标
+#     core_metrics = calculate_core_metrics(products_df, sales_df, reviews_df)
 #
-
-#         # 按分类分析
-#         category_analysis = analyze_by_category(products_df, sales_df, reviews_df)
+#     # 按分类分析
+#     category_analysis = analyze_by_category(products_df, sales_df, reviews_df)
 #
-#         # 分析最佳新品
-#         top_products = analyze_top_products(products_df, sales_df, reviews_df)
+#     # 分析最佳新品
+#     top_products = analyze_top_products(products_df, sales_df, reviews_df)
 #
-
-
-#         # 分析销售趋势
-#         sales_trend = analyze_sales_trend(products_df, sales_df)
+#     # 分析销售趋势
+#     sales_trend = analyze_sales_trend(products_df, sales_df)
 #
-#         # 可以将结果保存到文件
-#         output_dir = "analysis_results"
-#         if not os.path.exists(output_dir):
-#             os.makedirs(output_dir)
+#     # 可以将结果保存到文件或数据库
+#     category_analysis.write.mode("overwrite").csv("category_analysis.csv", header=True)
+#     top_products.write.mode("overwrite").csv("top_products.csv", header=True)
+#     sales_trend.write.mode("overwrite").csv("sales_trend.csv", header=True)
 #
-#         category_analysis.write.mode("overwrite").csv(f"{output_dir}/category_analysis", header=True)
-#         top_products.write.mode("overwrite").csv(f"{output_dir}/top_products", header=True)
-#         sales_trend.write.mode("overwrite").csv(f"{output_dir}/sales_trend", header=True)
-#         print(f"\n分析结果已保存至 {os.path.abspath(output_dir)} 目录")
-#
-#     except Exception as e:
-#         print(f"运行出错: {str(e)}")
-#     finally:
-#         # 停止Spark
-#         spark.stop()
+#     # 停止Spark
+#     spark.stop()
 #
 # if __name__ == "__main__":
 #     main()
