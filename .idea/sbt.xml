@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ScalaSbtSettings">
+    <option name="linkedExternalProjectsSettings">
+      <SbtProjectSettings>
+        <option name="externalProjectPath" value="$PROJECT_DIR$/offine_sparksql_con" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/offine_sparksql_con" />
+            <option value="$PROJECT_DIR$/offine_sparksql_con/project" />
+          </set>
+        </option>
+        <option name="sbtVersion" value="1.11.3" />
+      </SbtProjectSettings>
+      <SbtProjectSettings>
+        <option name="externalProjectPath" value="$PROJECT_DIR$/offline_scala_con" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/offline_scala_con" />
+            <option value="$PROJECT_DIR$/offline_scala_con/project" />
+          </set>
+        </option>
+        <option name="sbtVersion" value="1.11.3" />
+      </SbtProjectSettings>
+    </option>
+  </component>
+</project>

@@ -54,5 +54,12 @@
 # # 展示结果
 # summary_stats.show()
 #
+#
+# # 保存结果（可用于Excel热力图或BI工具可视化）
+# summary_stats.write \
+#     .format("csv") \
+#     .option("header", "true") \
+#     .mode("overwrite") \
+#     .save("new_products_data")
 # # 停止SparkSession
 # spark.stop()
