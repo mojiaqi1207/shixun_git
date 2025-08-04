@@ -58,7 +58,7 @@
 #         sum("pay_amount").alias("总支付金额"),
 #         avg("pay_amount").alias("平均单品销售额")
 #     ) \
-#         .orderBy("tag", "category")
+#         .orderBy("tag", "category")# 按标签和类目排序
 #     print("聚合完成。")
 # except Exception as e:
 #     print(f"聚合过程中出现异常: {e}")
