@@ -1,0 +1,41 @@
+-- use worker09;
+-- CREATE TABLE IF NOT EXISTS dwd_ecommerce_traffic_detail (
+--                                                             `date` STRING COMMENT '日期',
+--                                                             visitor_id STRING COMMENT '访客ID',
+--                                                             device_type STRING COMMENT '设备类型（无线端/PC端）',
+--                                                             entry_page STRING COMMENT '进店页面',
+--                                                             entry_page_type STRING COMMENT '进店页面类型',
+--                                                             source_page STRING COMMENT '来源页面',
+--                                                             destination_page STRING COMMENT '单个去向页面',
+--                                                             visitor_count INT COMMENT '访客数',
+--                                                             order_count INT COMMENT '下单买家数',
+--                                                             avg_stay_duration INT COMMENT '平均停留时长（秒）',
+--                                                             is_direct_entry INT COMMENT '是否直接进店（1=是，0=否）',
+--                                                             create_time STRING COMMENT '数据创建时间'
+-- )
+--     COMMENT '清洗后的电商流量明细数据，支持店内路径分析'
+--     ROW FORMAT DELIMITED
+--     FIELDS TERMINATED BY '\t'
+--     STORED AS PARQUET
+--     LOCATION '/user/hive/warehouse/dwd/dwd_ecommerce_traffic_detail';
+--
+--
+-- INSERT OVERWRITE TABLE dwd_ecommerce_traffic_detail
+-- SELECT
+--     `date`,
+--     visitor_id,
+--     device_type,
+--     entry_page,
+--     entry_page_type,
+--     source_page,
+--     destination_page,  -- 从LATERAL VIEW中获取拆分后的单个页面
+--     visitor_count,
+--     order_count,
+--     avg_stay_duration,
+--     CASE WHEN source_page = '直接进店' THEN 1 ELSE 0 END AS is_direct_entry,
+--     create_time
+-- FROM ods_ecommerce_traffic
+--          LATERAL VIEW explode(split(destination_pages, ',')) tmp AS destination_page  -- 关键：用LATERAL VIEW拆分
+-- WHERE visitor_id IS NOT NULL
+--   AND `date` REGEXP '^\\d{4}-\\d{2}-\\d{2}$';
+-- select * from dwd_ecommerce_traffic_detail;

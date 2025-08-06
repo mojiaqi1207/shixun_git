@@ -47,7 +47,7 @@ daily_summary = tmall_products.groupBy(
     sum("pay_amount").alias("total_pay_amount")  # 计算每日总支付金额
 ).orderBy("year", "month", "day")  # 按日期排序
 
-# 补充全年所有日期（处理无新品日期）
+# 补充全年所有日期
 from pyspark.sql.functions import expr
 date_range = spark.sql("""
     SELECT
@@ -62,11 +62,11 @@ full_dates = date_range.select(
     date_format("putaway_date", "EEEE").alias("weekday")
 )
 
-# 左连接获取完整日期数据（无新品日期支付金额为0）
+# # 左连接完整日期与聚合数据，确保无新品的日期也被保留（无新品日期支付金额为0）
 heatmap_data = full_dates.join(
     daily_summary,
     ["year", "month", "day", "month_day", "weekday"],
-    "left"
+    "left" #左连接：保留full_dates的所有日期
 ).fillna(0, subset=["total_pay_amount"])
 
 # 计算热力等级（1-5级，用于可视化深浅）

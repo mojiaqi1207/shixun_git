@@ -9,17 +9,16 @@
 #
 # # 定义数据结构
 # schema = StructType([
-#     StructField("product_id", StringType(), True),
-#     StructField("category", StringType(), True),
-#     StructField("title", StringType(), True),
-#     StructField("putaway_date", DateType(), True),
-#     StructField("price", DoubleType(), True),
-#     StructField("sales", IntegerType(), True),
-#     StructField("pay_amount", DoubleType(), True),
-#     StructField("tag", StringType(), True),
-#     StructField("is_tmall_new", IntegerType(), True)
+#     StructField("product_id", StringType(), True),   # 商品ID
+#     StructField("category", StringType(), True),     # 商品类别
+#     StructField("title", StringType(), True),        # 商品标题
+#     StructField("putaway_date", DateType(), True),   # 上架日期
+#     StructField("price", DoubleType(), True),        # 单价
+#     StructField("sales", IntegerType(), True),       # 销量
+#     StructField("pay_amount", DoubleType(), True),   # 支付金额
+#     StructField("tag", StringType(), True),          # 商品标签
+#     StructField("is_tmall_new", IntegerType(), True)  # 是否为天猫新品
 # ])
-#
 # # 读取CSV数据（请替换为实际文件路径）
 # df = spark.read \
 #     .format("csv") \
@@ -42,24 +41,23 @@
 #
 # # 汇总核心指标
 # summary_stats = period_products.agg(
-#     count("product_id").alias("上新商品数"),
-#     sum("sales").alias("累计销售件数"),
-#     sum("pay_amount").alias("累计支付金额"),
-#     avg("price").alias("平均单价"),
-#     max("pay_amount").alias("最高单品销售额"),
-#     min("pay_amount").alias("最低单品销售额"),
-#     count(when(col("sales") > 0, True)).alias("有销量商品数")  # 此处now可正常使用
+#     count("product_id").alias("上新商品数"),  # 统计商品总数
+#     sum("sales").alias("累计销售件数"),        # 总销量
+#     sum("pay_amount").alias("累计支付金额"),    # 总支付金额
+#     avg("price").alias("平均单价"),             # 平均单价
+#     max("pay_amount").alias("最高单品销售额"),  # 单个商品的最高销售额
+#     min("pay_amount").alias("最低单品销售额"),  # 单个商品的最低销售额
+#     count(when(col("sales") > 0, True)).alias("有销量商品数")  # 销量>0的商品数量
 # )
-#
-# # 展示结果
+# # 在控制台展示统计结果
 # summary_stats.show()
 #
-#
-# # 保存结果（可用于Excel热力图或BI工具可视化）
+# # 将结果保存为CSV文件
 # summary_stats.write \
 #     .format("csv") \
 #     .option("header", "true") \
 #     .mode("overwrite") \
 #     .save("new_products_data")
-# # 停止SparkSession
+#
+# # 停止SparkSession，释放资源
 # spark.stop()
