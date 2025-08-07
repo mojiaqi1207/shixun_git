@@ -1,0 +1,152 @@
+-- CREATE TABLE IF NOT EXISTS dwd_sku_base_info (
+--                                                  sku_id STRING COMMENT 'SKU ID',
+--                                                  product_id STRING COMMENT '商品ID',
+--                                                  shop_id STRING COMMENT '店铺ID',
+--                                                  sku_name STRING COMMENT 'SKU名称',
+--                                                  color STRING COMMENT '颜色',
+--                                                  price DOUBLE COMMENT '价格',
+--                                                  category_id STRING COMMENT '类目ID',
+--                                                  category_name STRING COMMENT '类目名称',
+--                                                  create_time STRING COMMENT '创建时间'
+-- ) PARTITIONED BY (dt STRING COMMENT '分区日期')
+--     ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+--     STORED AS PARQUET; -- 采用列存格式提升查询效率
+--
+--
+-- CREATE TABLE IF NOT EXISTS dwd_product_price_strength (
+--                                                           product_id STRING COMMENT '商品ID',
+--                                                           shop_id STRING COMMENT '店铺ID',
+--                                                           price_strength_level STRING COMMENT '价格力等级（优秀/良好/较差）',
+--                                                           product_strength_score INT COMMENT '商品力评分',
+--                                                           coupon_after_price DOUBLE COMMENT '券后价',
+--                                                           is_warn STRING COMMENT '是否预警（是/否）',
+--                                                           warn_type STRING COMMENT '预警类型（价格力/商品力）'
+-- ) PARTITIONED BY (dt STRING COMMENT '分区日期')
+--     ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+--     STORED AS PARQUET;
+--
+-- CREATE TABLE IF NOT EXISTS dwd_product_search (
+--                                                   product_id STRING COMMENT '商品ID',
+--                                                   shop_id STRING COMMENT '店铺ID',
+--                                                   search_word STRING COMMENT '搜索词',
+--                                                   visitor_count BIGINT COMMENT '搜索带来的访客数',
+--                                                   time_type STRING COMMENT '时间粒度（日/周/月）'
+-- ) PARTITIONED BY (dt STRING COMMENT '分区日期')
+--     ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+--     STORED AS PARQUET;
+--
+--
+--
+--
+-- CREATE TABLE IF NOT EXISTS dwd_product_traffic (
+--                                                    product_id STRING COMMENT '商品ID',
+--                                                    shop_id STRING COMMENT '店铺ID',
+--                                                    traffic_source STRING COMMENT '流量来源（如手淘搜索、效果广告）',
+--                                                    visitor_count BIGINT COMMENT '来源访客数',
+--                                                    pay_conversion_rate DOUBLE COMMENT '支付转化率',
+--                                                    time_type STRING COMMENT '时间粒度'
+-- ) PARTITIONED BY (dt STRING COMMENT '分区日期')
+--     ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+--     STORED AS PARQUET;
+--
+--
+-- CREATE TABLE IF NOT EXISTS dwd_product_sales (
+--                                                  product_id STRING COMMENT '商品ID',
+--                                                  shop_id STRING COMMENT '店铺ID',
+--                                                  visitor_count BIGINT COMMENT '访客数',
+--                                                  pay_buyer_count BIGINT COMMENT '支付买家数',
+--                                                  pay_conversion_rate DOUBLE COMMENT '支付转化率',
+--                                                  time_type STRING COMMENT '时间粒度'
+-- ) PARTITIONED BY (dt STRING COMMENT '分区日期')
+--     ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+--     STORED AS PARQUET;
+--
+--
+--
+--
+-- CREATE TABLE IF NOT EXISTS dwd_sku_sales_detail (
+--                                                     sku_id STRING COMMENT 'SKU ID',
+--                                                     product_id STRING COMMENT '商品ID',
+--                                                     shop_id STRING COMMENT '店铺ID',
+--                                                     pay_count BIGINT COMMENT '支付件数',
+--                                                     pay_amount DOUBLE COMMENT '支付金额',
+--                                                     sales_ratio DOUBLE COMMENT '销售占比',
+--                                                     stock_count BIGINT COMMENT '库存数量',
+--                                                     stock_days DOUBLE COMMENT '可售天数',
+--                                                     time_type STRING COMMENT '时间粒度'
+-- ) PARTITIONED BY (dt STRING COMMENT '分区日期')
+--     ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+--     STORED AS PARQUET;
+--
+--
+-- INSERT OVERWRITE TABLE dwd_sku_base_info PARTITION (dt = '20250807')
+-- SELECT
+--     sku_id,
+--     product_id,
+--     shop_id,
+--     sku_name,
+--     color,
+--     price,
+--     category_id,
+--     category_name,
+--     create_time
+-- FROM ods_sku_base_info
+-- WHERE dt = '20250807';
+--
+-- INSERT OVERWRITE TABLE dwd_product_price_strength PARTITION (dt = '20250807')
+-- SELECT
+--     product_id,
+--     shop_id,
+--     price_strength_level,
+--     product_strength_score,
+--     coupon_after_price,
+--     is_warn,
+--     warn_type
+-- FROM ods_price_strength_product
+-- WHERE dt = '20250807';
+--
+-- INSERT OVERWRITE TABLE dwd_product_search PARTITION (dt = '20250807')
+-- SELECT
+--     product_id,
+--     shop_id,
+--     search_word,
+--     visitor_count,
+--     time_type
+-- FROM ods_product_search_words
+-- WHERE dt = '20250807';
+--
+-- INSERT OVERWRITE TABLE dwd_product_traffic PARTITION (dt = '20250807')
+-- SELECT
+--     product_id,
+--     shop_id,
+--     traffic_source,
+--     visitor_count,
+--     pay_conversion_rate,
+--     time_type
+-- FROM ods_product_traffic_source
+-- WHERE dt = '20250807';
+--
+-- INSERT OVERWRITE TABLE dwd_product_sales PARTITION (dt = '20250807')
+-- SELECT
+--     product_id,
+--     shop_id,
+--     visitor_count,
+--     pay_buyer_count,
+--     pay_conversion_rate,
+--     time_type
+-- FROM ods_product_visitor_pay
+-- WHERE dt = '20250807';
+--
+-- INSERT OVERWRITE TABLE dwd_sku_sales_detail PARTITION (dt = '20250807')
+-- SELECT
+--     sku_id,
+--     product_id,
+--     shop_id,
+--     pay_count,
+--     pay_amount,
+--     sales_ratio,
+--     stock_count,
+--     stock_days,
+--     time_type
+-- FROM ods_sku_sales_detail
+-- WHERE dt = '20250807';

@@ -1,0 +1,167 @@
+-- CREATE TABLE IF NOT EXISTS dws_product_sales_summary (
+--                                                          product_id STRING COMMENT '商品ID',
+--                                                          shop_id STRING COMMENT '店铺ID',
+--                                                          category_id STRING COMMENT '类目ID',
+--                                                          category_name STRING COMMENT '类目名称',
+--                                                          total_pay_amount DOUBLE COMMENT '总支付金额',
+--                                                          total_pay_count BIGINT COMMENT '总支付件数',
+--                                                          total_visitor_count BIGINT COMMENT '总访客数',
+--                                                          total_pay_conversion_rate DOUBLE COMMENT '平均支付转化率',
+--                                                          time_type STRING COMMENT '时间粒度（日/周/月）'
+-- ) PARTITIONED BY (dt STRING COMMENT '分区日期')
+--     ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+--     STORED AS PARQUET;
+--
+--
+-- CREATE TABLE IF NOT EXISTS dws_product_traffic_summary (
+--                                                            product_id STRING COMMENT '商品ID',
+--                                                            shop_id STRING COMMENT '店铺ID',
+--                                                            top10_traffic_source MAP<STRING, BIGINT> COMMENT 'TOP10流量来源及访客数',
+--                                                            top10_conversion_rate MAP<STRING, DOUBLE> COMMENT 'TOP10流量来源及转化率',
+--                                                            time_type STRING COMMENT '时间粒度'
+-- ) PARTITIONED BY (dt STRING COMMENT '分区日期')
+--     ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+--     STORED AS PARQUET;
+--
+--
+-- CREATE TABLE IF NOT EXISTS dws_sku_sales_ranking (
+--                                                      product_id STRING COMMENT '商品ID',
+--                                                      shop_id STRING COMMENT '店铺ID',
+--                                                      top5_sku_info ARRAY<STRUCT<
+--                                                      sku_id:STRING,
+--                                                      pay_count:BIGINT,
+--                                                      pay_count_ratio:DOUBLE,
+--                                                      stock_count:BIGINT,
+--                                                      stock_days:DOUBLE
+--                                                      >> COMMENT 'TOP5 SKU信息',
+--                                                      time_type STRING COMMENT '时间粒度'
+-- ) PARTITIONED BY (dt STRING COMMENT '分区日期')
+--     ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+--     STORED AS PARQUET;
+--
+--
+--
+--
+-- CREATE TABLE IF NOT EXISTS dws_product_price_strength_summary (
+--                                                                   product_id STRING COMMENT '商品ID',
+--                                                                   shop_id STRING COMMENT '店铺ID',
+--                                                                   price_strength_level STRING COMMENT '价格力等级',
+--                                                                   coupon_after_price DOUBLE COMMENT '券后价',
+--                                                                   is_warn STRING COMMENT '是否预警',
+--                                                                   warn_type STRING COMMENT '预警类型',
+--                                                                   time_type STRING COMMENT '时间粒度'
+-- ) PARTITIONED BY (dt STRING COMMENT '分区日期')
+--     ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+--     STORED AS PARQUET;
+--
+-- -- 执行SQL前先运行此命令关闭本地模式
+-- set hive.exec.mode.local.auto=false;
+-- -- 先测试基础聚合是否正常（无关联）
+-- INSERT OVERWRITE TABLE dws_product_sales_summary PARTITION (dt = '20250807')
+-- SELECT
+--     s.product_id,
+--     s.shop_id,
+--     NULL AS category_id,  -- 暂时用NULL替代
+--     NULL AS category_name,
+--     0.0 AS total_pay_amount,
+--     0 AS total_pay_count,
+--     SUM(s.visitor_count) AS total_visitor_count,
+--     AVG(s.pay_conversion_rate) AS total_pay_conversion_rate,
+--     s.time_type
+-- FROM dwd_product_sales s
+-- WHERE s.dt = '20250807'
+-- GROUP BY s.product_id, s.shop_id, s.time_type;
+--
+-- -- 执行SQL前先运行此命令关闭本地模式
+-- set mapreduce.map.memory.mb=4096;  -- 调整Map任务内存
+-- set mapreduce.reduce.memory.mb=8192;  -- 调整Reduce任务内存
+-- set mapreduce.reduce.tasks=10;  -- 增加Reduce任务数量（根据数据量调整）
+-- set hive.exec.mode.local.auto=false;
+-- INSERT OVERWRITE TABLE dws_product_traffic_summary PARTITION (dt = '20250807')
+-- SELECT
+--     product_id,
+--     shop_id,
+--     -- 处理数组索引越界，不足10条时用null填充
+--     map(
+--         -- 第1条（判断数组长度是否足够）
+--             case when size(ts_list) >= 1 then ts_list[0] else null end,
+--             case when size(vc_list) >= 1 then cast(vc_list[0] as bigint) else null end,
+--         -- 第2条
+--             case when size(ts_list) >= 2 then ts_list[1] else null end,
+--             case when size(vc_list) >= 2 then cast(vc_list[1] as bigint) else null end,
+--         -- 第3条
+--             case when size(ts_list) >= 3 then ts_list[2] else null end,
+--             case when size(vc_list) >= 3 then cast(vc_list[2] as bigint) else null end,
+--         -- 第4条
+--             case when size(ts_list) >= 4 then ts_list[3] else null end,
+--             case when size(vc_list) >= 4 then cast(vc_list[3] as bigint) else null end,
+--         -- 第5条
+--             case when size(ts_list) >= 5 then ts_list[4] else null end,
+--             case when size(vc_list) >= 5 then cast(vc_list[4] as bigint) else null end,
+--         -- 第6条
+--             case when size(ts_list) >= 6 then ts_list[5] else null end,
+--             case when size(vc_list) >= 6 then cast(vc_list[5] as bigint) else null end,
+--         -- 第7条
+--             case when size(ts_list) >= 7 then ts_list[6] else null end,
+--             case when size(vc_list) >= 7 then cast(vc_list[6] as bigint) else null end,
+--         -- 第8条
+--             case when size(ts_list) >= 8 then ts_list[7] else null end,
+--             case when size(vc_list) >= 8 then cast(vc_list[7] as bigint) else null end,
+--         -- 第9条
+--             case when size(ts_list) >= 9 then ts_list[8] else null end,
+--             case when size(vc_list) >= 9 then cast(vc_list[8] as bigint) else null end,
+--         -- 第10条
+--             case when size(ts_list) >= 10 then ts_list[9] else null end,
+--             case when size(vc_list) >= 10 then cast(vc_list[9] as bigint) else null end
+--         ) AS top10_traffic_source,
+--     -- 转化率Map同样处理索引越界
+--     map(
+--             case when size(ts_list) >= 1 then ts_list[0] else null end,
+--             case when size(pc_list) >= 1 then cast(pc_list[0] as double) else null end,
+--             case when size(ts_list) >= 2 then ts_list[1] else null end,
+--             case when size(pc_list) >= 2 then cast(pc_list[1] as double) else null end,
+--             case when size(ts_list) >= 3 then ts_list[2] else null end,
+--             case when size(pc_list) >= 3 then cast(pc_list[2] as double) else null end,
+--             case when size(ts_list) >= 4 then ts_list[3] else null end,
+--             case when size(pc_list) >= 4 then cast(pc_list[3] as double) else null end,
+--             case when size(ts_list) >= 5 then ts_list[4] else null end,
+--             case when size(pc_list) >= 5 then cast(pc_list[4] as double) else null end,
+--             case when size(ts_list) >= 6 then ts_list[5] else null end,
+--             case when size(pc_list) >= 6 then cast(pc_list[5] as double) else null end,
+--             case when size(ts_list) >= 7 then ts_list[6] else null end,
+--             case when size(pc_list) >= 7 then cast(pc_list[6] as double) else null end,
+--             case when size(ts_list) >= 8 then ts_list[7] else null end,
+--             case when size(pc_list) >= 8 then cast(pc_list[7] as double) else null end,
+--             case when size(ts_list) >= 9 then ts_list[8] else null end,
+--             case when size(pc_list) >= 9 then cast(pc_list[8] as double) else null end,
+--             case when size(ts_list) >= 10 then ts_list[9] else null end,
+--             case when size(pc_list) >= 10 then cast(pc_list[9] as double) else null end
+--         ) AS top10_conversion_rate,
+--     time_type
+-- FROM (
+--          -- 提前聚合数组，避免重复计算
+--          SELECT
+--              product_id,
+--              shop_id,
+--              time_type,
+--              collect_list(traffic_source) AS ts_list,  -- 流量来源数组
+--              collect_list(visitor_count) AS vc_list,   -- 访客数数组
+--              collect_list(pay_conversion_rate) AS pc_list  -- 转化率数组
+--          FROM (
+--                   SELECT
+--                       product_id,
+--                       shop_id,
+--                       traffic_source,
+--                       visitor_count,
+--                       pay_conversion_rate,
+--                       time_type,
+--                       row_number() OVER (
+--                           PARTITION BY product_id, shop_id, time_type
+--                           ORDER BY visitor_count DESC
+--                           ) AS rn
+--                   FROM dwd_product_traffic
+--                   WHERE dt = '20250807'
+--               ) t
+--          WHERE rn <= 10
+--          GROUP BY product_id, shop_id, time_type
+--      ) agg;  -- 外层引用聚合后的数组

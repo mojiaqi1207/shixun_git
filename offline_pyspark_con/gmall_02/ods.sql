@@ -1,0 +1,159 @@
+-- -- 切换到指定数据库
+-- USE work_02;
+--
+-- -- 创建 ods_sku_base_info 表
+-- CREATE TABLE IF NOT EXISTS ods_sku_base_info (
+--                                                  sku_id STRING,
+--                                                  product_id STRING,
+--                                                  shop_id STRING,
+--                                                  sku_name STRING,
+--                                                  color STRING,
+--                                                  price DOUBLE,
+--                                                  category_id STRING,
+--                                                  category_name STRING,
+--                                                  create_time STRING
+-- )
+--     PARTITIONED BY (dt STRING)  -- 指定dt为分区列
+--     ROW FORMAT DELIMITED
+--     FIELDS TERMINATED BY '\t'
+--     STORED AS TEXTFILE;
+--
+-- -- 加载数据到 ods_sku_base_info 表
+--
+--
+--
+-- LOAD DATA INPATH '/user/hive/warehouse/ods/tmp/ods_sku_base_info.csv'
+--     OVERWRITE INTO TABLE ods_sku_base_info
+--     PARTITION (dt = '20250807');  -- 这里替换为实际的分区日期值
+--
+--
+-- -- 创建 ods_price_strength_product 表，以 dt 作为分区列
+-- CREATE TABLE IF NOT EXISTS ods_price_strength_product (
+--                                                           product_id STRING,
+--                                                           shop_id STRING,
+--                                                           price_strength_level STRING,
+--                                                           product_strength_score INT,
+--                                                           coupon_after_price DOUBLE,
+--                                                           is_warn STRING,
+--                                                           warn_type STRING,
+--                                                           data_dt STRING
+-- )
+--     PARTITIONED BY (dt STRING)
+--     ROW FORMAT DELIMITED
+--     FIELDS TERMINATED BY '\t'
+--     STORED AS TEXTFILE;
+--
+--
+-- LOAD DATA INPATH '/user/hive/warehouse/ods/tmp/ods_price_strength_product.csv'
+--     OVERWRITE INTO TABLE ods_price_strength_product
+--     PARTITION (dt = '20250807');  -- 这里替换为实际的分区日期值
+--
+-- select * from ods_price_strength_product;
+--
+--
+--
+--
+--
+--
+-- -- 创建 ods_product_search_words 表，以 dt 作为分区列
+-- CREATE TABLE IF NOT EXISTS ods_product_search_words (
+--                                                         product_id STRING,
+--                                                         shop_id STRING,
+--                                                         search_word STRING,
+--                                                         visitor_count BIGINT,
+--                                                         data_dt STRING,
+--                                                         time_type STRING
+-- )
+--     PARTITIONED BY (dt STRING)
+--     ROW FORMAT DELIMITED
+--     FIELDS TERMINATED BY '\t'
+--     STORED AS TEXTFILE;
+--
+--
+--
+--
+--
+--
+--
+-- LOAD DATA INPATH '/user/hive/warehouse/ods/tmp/ods_product_search_words.csv'
+--     OVERWRITE INTO TABLE ods_product_search_words
+--     PARTITION (dt = '20250807');  -- 这里替换为实际的分区日期值
+--
+--
+--
+-- select  * from ods_product_search_words;
+--
+-- -- 创建 ods_product_traffic_source 表，以 dt 作为分区列
+-- CREATE TABLE IF NOT EXISTS ods_product_traffic_source (
+--                                                           product_id STRING,
+--                                                           shop_id STRING,
+--                                                           traffic_source STRING,
+--                                                           visitor_count BIGINT,
+--                                                           pay_conversion_rate DOUBLE,
+--                                                           data_dt STRING,
+--                                                           time_type STRING
+-- )
+--     PARTITIONED BY (dt STRING)
+--     ROW FORMAT DELIMITED
+--     FIELDS TERMINATED BY '\t'
+--     STORED AS TEXTFILE;
+--
+-- LOAD DATA INPATH '/user/hive/warehouse/ods/tmp/ods_product_traffic_source.csv'
+--     OVERWRITE INTO TABLE ods_product_traffic_source
+--     PARTITION (dt = '20250807');  -- 这里替换为实际的分区日期值
+--
+--
+--
+-- select  * from ods_product_traffic_source;
+--
+--
+-- -- 创建 ods_product_visitor_pay 表，以 dt 作为分区列
+-- CREATE TABLE IF NOT EXISTS ods_product_visitor_pay (
+--                                                        product_id STRING,
+--                                                        shop_id STRING,
+--                                                        visitor_count BIGINT,
+--                                                        pay_buyer_count BIGINT,
+--                                                        pay_conversion_rate DOUBLE,
+--                                                        data_dt STRING,
+--                                                        time_type STRING
+-- )
+--     PARTITIONED BY (dt STRING)
+--     ROW FORMAT DELIMITED
+--     FIELDS TERMINATED BY '\t'
+--     STORED AS TEXTFILE;
+--
+-- LOAD DATA INPATH '/user/hive/warehouse/ods/tmp/ods_product_visitor_pay.csv'
+--     OVERWRITE INTO TABLE ods_product_visitor_pay
+--     PARTITION (dt = '20250807');  -- 这里替换为实际的分区日期值
+--
+--
+--
+-- select  * from ods_product_visitor_pay;
+--
+--
+-- -- 创建 ods_sku_sales_detail 表，以 dt 作为分区列
+-- CREATE TABLE IF NOT EXISTS ods_sku_sales_detail (
+--                                                     sku_id STRING,
+--                                                     product_id STRING,
+--                                                     shop_id STRING,
+--                                                     pay_count BIGINT,
+--                                                     pay_amount DOUBLE,
+--                                                     sales_ratio DOUBLE,
+--                                                     stock_count BIGINT,
+--                                                     stock_days DOUBLE,
+--                                                     data_dt STRING,
+--                                                     time_type STRING
+-- )
+--     PARTITIONED BY (dt STRING)
+--     ROW FORMAT DELIMITED
+--     FIELDS TERMINATED BY '\t'
+--     STORED AS TEXTFILE;
+--
+--
+-- LOAD DATA INPATH '/user/hive/warehouse/ods/tmp/ods_sku_sales_detail.csv'
+--     OVERWRITE INTO TABLE ods_sku_sales_detail
+--     PARTITION (dt = '20250807');  -- 这里替换为实际的分区日期值
+--
+--
+--
+-- select  * from ods_sku_sales_detail;

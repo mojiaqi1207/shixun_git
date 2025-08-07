@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="SqlDialectMappings">
+    <file url="file://$PROJECT_DIR$/offline_pyspark_con/gmall_02/dwd.sql" dialect="HiveQL" />
+    <file url="file://$PROJECT_DIR$/offline_pyspark_con/gmall_02/ods.sql" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/offline_pyspark_con/gmall_09_liuliang/ads.sql" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/offline_pyspark_con/gmall_09_liuliang/dwd.sql" dialect="HiveQL" />
     <file url="file://$PROJECT_DIR$/offline_pyspark_con/gmall_09_liuliang/dws.sql" dialect="GenericSQL" />
